@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pawsome Petsitters</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #fcfbf7;
+      color: #333333;
+      line-height: 1.6;
+      padding: 20px;
+    }
+    .container {
+      max-width: 550px;
+      margin: 30px auto;
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      border: 1px solid #eaddca;
+    }
+    h1 {
+      text-align: center;
+      color: #705335;
+      font-size: 2.2rem;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #8c8275;
+      font-size: 1rem;
+      margin-bottom: 30px;
+    }
+    h2 {
+      color: #705335;
+      font-size: 1.4rem;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #f4efe6;
+      padding-bottom: 8px;
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #4a4238;
+      font-size: 0.95rem;
+    }
+    input[type="text"],
+    input[type="date"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 20px;
+      border: 1px solid #d3c7b5;
+      border-radius: 6px;
+      font-size: 1rem;
+      background-color: #faf9f6;
+      color: #333333;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #705335;
+      background-color: #ffffff;
+    }
+    textarea {
+      resize: vertical;
+      font-family: inherit;
+    }
+    .date-row {
+      display: flex;
+      gap: 15px;
+    }
+    .date-field {
+      flex: 1;
+    }
+    .price-display-box {
+      background-color: #f4efe6;
+      border: 1px dashed #705335;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      text-align: center;
+      font-weight: bold;
+      color: #705335;
+      font-size: 1.1rem;
+    }
+    
+    .whatsapp-btn {
+      display: block;
+      width: 100%;
+      background-color: #25d366;
+      color: white;
+      text-align: center;
+      text-decoration: none;
+      padding: 14px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+      border: none;
+    }
+    .whatsapp-btn:hover {
+      background-color: #128c7e;
+    }
+    .disabled-btn {
+      background-color: #cccccc !important;
+      cursor: not-allowed !important;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>🐾 Pawsome Petsitters</h1>
+    <p class="subtitle">Professional, loving care right in your home.</p>
+
+    <h2>Book a Sitter</h2>
+    <div id="bookingForm">
+      
+      <label for="customer_name">Your Name:</label>
+      <input type="text" id="customer_name" placeholder="e.g. Jane Doe" oninput="calculateAndBuildLink()">
+      
+      <label for="pet">Pet's Name(s):</label>
+      <input type="text" id="pet" placeholder="e.g. Max & Bella" oninput="calculateAndBuildLink()">
+
+      <label for="service">Choose Service:</label>
+      <select id="service" onchange="calculateAndBuildLink()">
+        <option value="Sleep In" data-price="180">Sleep In — R180 per night</option>
+        <option value="Daily Visits" data-price="120">Daily Visits — R120 per day</option>
+      </select>
+
+      <div class="date-row">
+        <div class="date-field">
+          <label for="start">Start Date:</label>
+          <input type="date" id="start" onchange="calculateAndBuildLink()">
+        </div>
+        <div class="date-field">
+          <label for="end">End Date:</label>
+          <input type="date" id="end" onchange="calculateAndBuildLink()">
+        </div>
+      </div>
+
+      <label for="street_address">Physical Address:</label>
+      <input type="text" id="street_address" placeholder="e.g. 123 Protea Road" oninput="calculateAndBuildLink()">
+
+      <label for="address">Suburb / Town:</label>
+      <input type="text" id="address" placeholder="e.g. Garsfontein, Pretoria" oninput="calculateAndBuildLink()">
+
+      <label for="notes">Special Instructions or Medical Needs (Optional):</label>
+      <textarea id="notes" rows="3" placeholder="e.g. Diet rules, medication instructions..." oninput="calculateAndBuildLink()"></textarea>
+
+      <div id="priceDisplay" class="price-display-box">
+        Please fill out fields to generate link...
+      </div>
+
+      <a id="waLink" href="#" class="whatsapp-btn" onclick="checkFormValidity(event)">
+        Book via WhatsApp
+      </a>
+    </div>
+  </div>
+
+  <script>
+  // 📆 TYPE YOUR BUSY / FULLY BOOKED DATES HERE (Format: YYYY-MM-DD)
+  // Just change or add dates inside these brackets to block them out for customers!
+  let bookedDates = [
+    "2026-06-25",
+    "2026-06-26",
+    "2026-07-04",
+    "2026-07-05"
+  ];
+
+  window.onload = function() {
+    const todayStr = new Date().toISOString().split('T')[0];
+    document.getElementById('start').min = todayStr;
+    document.getElementById('end').min = todayStr;
+
+    // Automatically hides dates that have already passed
+    bookedDates = bookedDates.filter(dateString => dateString >= todayStr);
+    calculateAndBuildLink();
+  };
+
+  function checkFormValidity(event) {
+    event.preventDefault();
+    calculateAndBuildLink();
+
+    const customerName = document.getElementById('customer_name').value;
+    const pet = document.getElementById('pet').value;
+    const start = document.getElementById('start').value;
+    const end = document.getElementById('end').value;
+    const street = document.getElementById('street_address').value;
+    const suburb = document.getElementById('address').value;
+    const waLinkElement = document.getElementById('waLink');
+
+    if (waLinkElement.classList.contains('disabled-btn')) {
+      alert("We are unfortunately fully booked on the selected dates. Please try another range!");
+      return;
+    }
+
+    if (!customerName || !pet || !start || !end || !street || !suburb) {
+      alert("Please fill in all required fields before booking.");
+    } else if (waLinkElement.dataset.url) {
+      window.open(waLinkElement.dataset.url, '_blank', 'noopener,noreferrer');
+    } else {
+      alert("Please check that your dates are valid before booking.");
+    }
+  }
+
+  function calculateAndBuildLink() {
+    const customerName = document.getElementById('customer_name').value;
+    const petName = document.getElementById('pet').value;
+    const serviceSelect = document.getElementById('service');
+    const selectedService = serviceSelect.value;
+    const ratePerUnit = parseFloat(serviceSelect.options[serviceSelect.selectedIndex].getAttribute('data-price'));
+    
+    const startDateStr = document.getElementById('start').value;
+    const endDateStr = document.getElementById('end').value;
+    const street = document.getElementById('street_address').value;
+    const suburb = document.getElementById('address').value;
+    const specialNotes = document.getElementById('notes').value;
+    
+    const displayBox = document.getElementById('priceDisplay');
+    const nativeButtonLink = document.getElementById('waLink');
+
+    nativeButtonLink.classList.remove('disabled-btn');
+
+    if (!startDateStr || !endDateStr) {
+      displayBox.innerHTML = "Select dates to see price estimate.";
+      delete nativeButtonLink.dataset.url;
+      return;
+    }
+
+    const start = new Date(startDateStr);
+    const end = new Date(endDateStr);
+    document.getElementById('end').min = startDateStr;
+
+    let currentCheckDate = new Date(start);
+    let isFullyBooked = false;
+
+    while (currentCheckDate <= end) {
+      const dateStringToCheck = currentCheckDate.toISOString().split('T')[0];
+      if (bookedDates.includes(dateStringToCheck)) {
+        isFullyBooked = true;
+        break;
+      }
+      currentCheckDate.setDate(currentCheckDate.getDate() + 1);
+    }
+
+    if (isFullyBooked) {
+      displayBox.innerHTML = "❌ Sorry, we are fully booked on those dates!";
+      nativeButtonLink.classList.add('disabled-btn');
+      delete nativeButtonLink.dataset.url;
+      return;
+    }
+
+    const timeDiff = end.getTime() - start.getTime();
+    let duration = Math.ceil(timeDiff / (1000 * 3600 * 24));
+    let durationLabel = "Nights";
+    
+    if (selectedService === "Daily Visits") {
+      duration = duration + 1; 
+      durationLabel = "Days";
+    }
+    
+    let totalCost = 0;
+    if (duration >= 0) {
+      totalCost = duration === 0 && selectedService === "Daily Visits" ? ratePerUnit : duration * ratePerUnit;
+      if(duration === 0 && selectedService === "Daily Visits") duration = 1;
+      displayBox.innerHTML = "📊 Total " + durationLabel + ": " + duration + " | Estimated Cost: R" + totalCost;
+    } else {
+      displayBox.innerHTML = "❌ End date cannot be before start date.";
+      delete nativeButtonLink.dataset.url;
+      return;
+    }
+
+    let priceDetails = durationLabel + ": " + duration + "%0A💰 Estimated Total: R" + totalCost;
+    let notesMessage = specialNotes.trim() !== "" ? "%0A%0A📝 Notes: " + encodeURIComponent(specialNotes) : "";
+
+    const message = "Hi! I want to book a pet sitting service.%0A%0A" + 
+                    "👤 Customer Name: " + encodeURIComponent(customerName) + "%0A" +
+                    "🐾 Pet Name(s): " + encodeURIComponent(petName) + "%0A" + 
+                    "🛠 Service: " + encodeURIComponent(selectedService) + "%0A" + 
+                    "📅 Start Date: " + startDateStr + "%0A" + 
+                    "📅 End Date: " + endDateStr + "%0A" + 
+                    "📍 Address: " + encodeURIComponent(street) + ", " + encodeURIComponent(suburb) + "%0A%0A" + 
+                    "📊 " + price
